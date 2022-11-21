@@ -1,0 +1,28 @@
+.UrlUpload {
+    margin-top: 20px;
+    max-width: 50%;
+}
+
+ul {
+    margin: 20px;
+}
+
+button {
+    margin-left: 20px;
+    color: white;
+    background-color: rgb(16, 0, 235)
+}
+
+.container {
+    margin: 30px;
+}
+
+.hidden {
+    opacity: 0;
+    height: 0;
+    width: 0;
+    line-height: 0;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+}
