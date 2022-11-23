@@ -29,19 +29,17 @@ function Upload({ url }) {
 
         axios.put(url, formData)
             .then(() => setUploaded(!uploaded))
-            .catch(console.log);
+            .then(() => (axios('https://cloud-api.yandex.net/v1/disk/resources/download?path=%myfiles01&overwrite=true', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `OAuth ${accessToken}`,
+                },
+            })
+                .then((res) => setUrlUpload(res.data.href))
+                .catch(console.log))
+                .catch(console.log));
     };
 
-    const linkDownload = () => {
-        (axios('https://cloud-api.yandex.net/v1/disk/resources/download?path=%myfiles01&overwrite=true', {
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': `OAuth ${accessToken}`,
-            },
-        })
-            .then((res) => setUrlUpload(res.data.href))
-            .catch(console.log));
-    }
 
     return (
         <>
@@ -60,12 +58,13 @@ function Upload({ url }) {
                     <button onClick={uploadHandler}>Загрузить файл</button>
                 </>
             )}
-            {uploaded && (
-                <button onClick={linkDownload}>Получить ссылку для скачивания</button>
+            {urlUpload && (
+                <div className="UrlUpload">
+                    <h3> Файл можно скачать по ссылке</h3>
+                    {urlUpload}
+                </div>
             )}
-            <div className="UrlUpload">
-                {urlUpload}
-            </div>
+
         </>
     );
 }
