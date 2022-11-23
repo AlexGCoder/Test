@@ -1,26 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import './App.css';
+import Output from './components/Output';
 import Upload from './components/Upload';
 
 
 function App() {
-  // const [url, setUrl] = useState(null);
-
-
-  // useEffect(() => {
-  //   axios('https://cloud-api.yandex.net/v1/disk/resources/upload?path=%myfiles01&overwrite=true', {
-  //     headers: {
-  //       'Accept': 'application/json',
-  //       'Authorization': `OAuth ${accessToken}`,
-  //     },
-  //   })
-  //     .then((res) => setUrl(res.data.href))
-  //     .catch(console.log);
-  // }, []); 
+  const [urlUpload, setUrlUpload] = useState();
+  const [error, setError] = useState(null);
 
   return (
     <div className='container'>
-      <Upload />
+      <Upload setUrlUpload={setUrlUpload} setError={setError} />
+      <Output urlUpload={urlUpload} error={error} />
     </div>
   );
 }

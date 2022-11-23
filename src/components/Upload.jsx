@@ -2,17 +2,17 @@ import React, { useEffect } from 'react';
 import { useState, useRef } from 'react';
 import axios from 'axios';
 import accessToken from '../base';
+import FileCard from './UI/FileCard';
 
-function Upload() {
+function Upload({ setUrlUpload, setError }) {
     const filePicker = useRef(null);
     const [url, setUrl] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
-    const [selectedFileName, setSelectedFileName] = useState(null);
-    const [urlUpload, setUrlUpload] = useState();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [overWriteError, setOverWriteEror] = useState(null);
     const [overwrite, setOverwrite] = useState(false);
+    const [selectedFileName, setSelectedFileName] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [overWriteError, setOverWriteEror] = useState(null);
+
 
     useEffect(() => {
         setOverWriteEror(null);
@@ -75,12 +75,10 @@ function Upload() {
     };
 
     const overwriteHandler = () => {
-        setOverwrite(!overwrite)
+        setOverwrite(true)
     }
 
-    const conversion = function (a) {
-        return (a * 0.001).toFixed(1)
-    }
+
 
     return (
         <>
@@ -92,11 +90,7 @@ function Upload() {
             </div>
             {selectedFile && (
                 <>
-                    <ul>
-                        <li>{`Название файла:${selectedFile.name}`}</li>
-                        <li>{`Тип файла:${selectedFile.type}`}</li>
-                        <li>{`Размер файла:${conversion(selectedFile.size)} кБ`}</li>
-                    </ul>
+                    <FileCard selectedFile={selectedFile} />
                     <button onClick={uploadHandler}>Загрузить файл</button>
                 </>
             )}
@@ -112,20 +106,6 @@ function Upload() {
                 </div>
             )
             }
-            {error && (
-                <div className='error'>
-                    <h4>{error}</h4>
-                </div>
-            )}
-            {
-                urlUpload && (
-                    <div className="UrlUpload">
-                        <h3> Файл можно скачать по ссылке</h3>
-                        {urlUpload}
-                    </div>
-                )
-            }
-
         </>
     );
 }
