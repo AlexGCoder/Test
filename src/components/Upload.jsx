@@ -1,8 +1,9 @@
 import React from 'react';
 import { useState, useRef } from 'react';
 import axios from 'axios';
+import accessToken from '../base';
 
-function Upload({ url, accessToken }) {
+function Upload({ url }) {
     const filePicker = useRef(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [uploaded, setUploaded] = useState(false);
@@ -47,14 +48,17 @@ function Upload({ url, accessToken }) {
             <div>
                 <button onClick={clickHandler}>Выбрать файл</button>
                 <input className='hidden' type='file' onChange={changeHandler} ref={filePicker} />
-                <button onClick={uploadHandler}>Загрузить файл</button>
+
             </div>
             {selectedFile && (
-                <ul>
-                    <li>{`Название файла:${selectedFile.name}`}</li>
-                    <li>{`Тип файла:${selectedFile.type}`}</li>
-                    <li>{`Размер файла:${+selectedFile.size}`}</li>
-                </ul>
+                <>
+                    <ul>
+                        <li>{`Название файла:${selectedFile.name}`}</li>
+                        <li>{`Тип файла:${selectedFile.type}`}</li>
+                        <li>{`Размер файла:${+selectedFile.size}`}</li>
+                    </ul>
+                    <button onClick={uploadHandler}>Загрузить файл</button>
+                </>
             )}
             {uploaded && (
                 <button onClick={linkDownload}>Получить ссылку для скачивания</button>
