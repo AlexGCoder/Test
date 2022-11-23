@@ -9,9 +9,11 @@ function Upload() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [selectedFileName, setSelectedFileName] = useState(null);
     const [urlUpload, setUrlUpload] = useState();
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
+        setError(null);
         axios(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=%myfiles11%${selectedFileName}&overwrite=false`, {
             headers: {
                 'Accept': 'application/json',
@@ -19,13 +21,14 @@ function Upload() {
             },
         })
             .then((res) => setUrl(res.data.href))
-            .catch(console.log);
+            .catch((e) => setError(e));
     }, [selectedFileName]);
 
     const clickHandler = () => {
         filePicker.current.click();
     }
     const changeHandler = (e) => {
+        setUrlUpload(false)
         setSelectedFile(e.target.files[0]);
         setSelectedFileName(e.target.files[0].name);
     };
@@ -51,8 +54,8 @@ function Upload() {
                 },
             })
                 .then((res) => setUrlUpload(res.data.href))
-                .catch(alert))
-                .finally(setLoading(false)))
+                .catch((e) => setError(e))
+                .finally(setLoading(false))))
 
     };
 
@@ -78,6 +81,11 @@ function Upload() {
                 <div>
                     <h3> Loading ...</h3>
                 </div>)}
+            {error && (
+                <div>
+                    <h3>{error.message}</h3>
+                </div>
+            )}
             {urlUpload && (
                 <div className="UrlUpload">
                     <h3> Файл можно скачать по ссылке</h3>
