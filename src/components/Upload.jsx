@@ -14,31 +14,40 @@ function Upload() {
 
     useEffect(() => {
         setError(null);
-        axios(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=%myfiles11%${selectedFileName}&overwrite=false`, {
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': `OAuth ${accessToken}`,
-            },
-        })
-            .then((res) => setUrl(res.data.href))
-            .catch((e) => setError(e));
+        if (selectedFileName !== null) {
+            axios(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=%myfiles11%${selectedFileName}&overwrite=false`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `OAuth ${accessToken}`,
+                },
+            })
+                .then((res) => setUrl(res.data.href))
+                .catch((e) => {
+                    if (e.response.status === 409) {
+                        setError('Ошибка, файл с таким именем уже есть!');
+                    }
+                }
+
+                )
+        }
     }, [selectedFileName]);
 
     const clickHandler = () => {
         filePicker.current.click();
     }
     const changeHandler = (e) => {
-        setUrlUpload(false)
+        setUrlUpload(false);
         setSelectedFile(e.target.files[0]);
         setSelectedFileName(e.target.files[0].name);
     };
 
     const uploadHandler = () => {
+        setError(null);
         if (!selectedFile) {
-            alert('Пожалуйста выберите файл');
+            setError('Пожалуйста выберите файл');
             return;
         } if (+selectedFile.size > 1e+9) {
-            alert('файл слишком большой, выберите другой');
+            setError('файл слишком большой, выберите другой');
             return;
         }
         const formData = new FormData();
@@ -54,11 +63,11 @@ function Upload() {
                 },
             })
                 .then((res) => setUrlUpload(res.data.href))
-                .catch((e) => setError(e))
+                .catch((e) => {
+                    if (e.error === 'Request failed with status code 409') { setError('Файл с таким именем уже существует') }
+                })
                 .finally(setLoading(false))))
-
     };
-
 
     return (
         <>
@@ -82,8 +91,8 @@ function Upload() {
                     <h3> Loading ...</h3>
                 </div>)}
             {error && (
-                <div>
-                    <h3>{error.message}</h3>
+                <div className='error'>
+                    <h3>{error}</h3>
                 </div>
             )}
             {urlUpload && (

@@ -3,6 +3,12 @@
     max-width: 50%;
 }
 
+.error {
+    margin-top: 20px;
+    color: red;
+
+}
+
 ul {
     margin: 20px;
 }
