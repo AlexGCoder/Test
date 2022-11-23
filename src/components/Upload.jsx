@@ -1,19 +1,33 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState, useRef } from 'react';
 import axios from 'axios';
 import accessToken from '../base';
 
-function Upload({ url }) {
+function Upload() {
     const filePicker = useRef(null);
+    const [url, setUrl] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
-    const [uploaded, setUploaded] = useState(false);
+    const [selectedFileName, setSelectedFileName] = useState(null);
     const [urlUpload, setUrlUpload] = useState();
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        axios(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=%myfiles11%${selectedFileName}&overwrite=false`, {
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `OAuth ${accessToken}`,
+            },
+        })
+            .then((res) => setUrl(res.data.href))
+            .catch(console.log);
+    }, [selectedFileName]);
 
     const clickHandler = () => {
         filePicker.current.click();
     }
     const changeHandler = (e) => {
         setSelectedFile(e.target.files[0]);
+        setSelectedFileName(e.target.files[0].name);
     };
 
     const uploadHandler = () => {
@@ -27,17 +41,19 @@ function Upload({ url }) {
         const formData = new FormData();
         formData.append('file', selectedFile);
 
+        setLoading(true)
+
         axios.put(url, formData)
-            .then(() => setUploaded(!uploaded))
-            .then(() => (axios('https://cloud-api.yandex.net/v1/disk/resources/download?path=%myfiles01&overwrite=true', {
+            .then(() => (axios(`https://cloud-api.yandex.net/v1/disk/resources/download?path=%myfiles11%${selectedFileName}`, {
                 headers: {
                     'Accept': 'application/json',
                     'Authorization': `OAuth ${accessToken}`,
                 },
             })
                 .then((res) => setUrlUpload(res.data.href))
-                .catch(console.log))
-                .catch(console.log));
+                .catch(alert))
+                .finally(setLoading(false)))
+
     };
 
 
@@ -58,6 +74,10 @@ function Upload({ url }) {
                     <button onClick={uploadHandler}>Загрузить файл</button>
                 </>
             )}
+            {loading && (
+                <div>
+                    <h3> Loading ...</h3>
+                </div>)}
             {urlUpload && (
                 <div className="UrlUpload">
                     <h3> Файл можно скачать по ссылке</h3>
