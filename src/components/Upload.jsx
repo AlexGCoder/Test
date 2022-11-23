@@ -11,11 +11,13 @@ function Upload() {
     const [urlUpload, setUrlUpload] = useState();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [overWriteError, setOverWriteEror] = useState(null);
+    const [overwrite, setOverwrite] = useState(false);
 
     useEffect(() => {
-        setError(null);
+        setOverWriteEror(null);
         if (selectedFileName !== null) {
-            axios(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=%myfiles11%${selectedFileName}&overwrite=false`, {
+            axios(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=%myfiles11%${selectedFileName}&overwrite=${overwrite}`, {
                 headers: {
                     'Accept': 'application/json',
                     'Authorization': `OAuth ${accessToken}`,
@@ -24,13 +26,14 @@ function Upload() {
                 .then((res) => setUrl(res.data.href))
                 .catch((e) => {
                     if (e.response.status === 409) {
-                        setError('Ошибка, файл с таким именем уже есть!');
+                        setOverWriteEror('Ошибка, файл с таким именем уже есть!');
                     }
-                }
-
-                )
+                    if (e.response.status === 404) {
+                        setError('Ошибка, файл не найден!');
+                    }
+                })
         }
-    }, [selectedFileName]);
+    }, [selectedFileName, overwrite]);
 
     const clickHandler = () => {
         filePicker.current.click();
@@ -39,21 +42,19 @@ function Upload() {
         setUrlUpload(false);
         setSelectedFile(e.target.files[0]);
         setSelectedFileName(e.target.files[0].name);
+        setOverwrite(false);
     };
 
     const uploadHandler = () => {
-        setError(null);
-        if (!selectedFile) {
-            setError('Пожалуйста выберите файл');
-            return;
-        } if (+selectedFile.size > 1e+9) {
+        setOverWriteEror(null);
+        if (selectedFile.size > 1e+9) {
             setError('файл слишком большой, выберите другой');
             return;
         }
         const formData = new FormData();
         formData.append('file', selectedFile);
 
-        setLoading(true)
+        setLoading(true);
 
         axios.put(url, formData)
             .then(() => (axios(`https://cloud-api.yandex.net/v1/disk/resources/download?path=%myfiles11%${selectedFileName}`, {
@@ -64,15 +65,28 @@ function Upload() {
             })
                 .then((res) => setUrlUpload(res.data.href))
                 .catch((e) => {
-                    if (e.error === 'Request failed with status code 409') { setError('Файл с таким именем уже существует') }
+                    if (e.response.status === 500 || e.response.status === 503) {
+                        setError('ошибка сервера, попробуйте повторить загрузку.!')
+                    }
                 })
-                .finally(setLoading(false))))
+                .finally(
+                    setLoading(false),
+                    setSelectedFile(null))))
     };
+
+    const overwriteHandler = () => {
+        setOverwrite(!overwrite)
+    }
+
+    const conversion = function (a) {
+        return (a * 0.001).toFixed(1)
+    }
 
     return (
         <>
             <div>
                 <button onClick={clickHandler}>Выбрать файл</button>
+                <h5>Размер файла не должен превышать 1 гб</h5>
                 <input className='hidden' type='file' onChange={changeHandler} ref={filePicker} />
 
             </div>
@@ -81,7 +95,7 @@ function Upload() {
                     <ul>
                         <li>{`Название файла:${selectedFile.name}`}</li>
                         <li>{`Тип файла:${selectedFile.type}`}</li>
-                        <li>{`Размер файла:${+selectedFile.size}`}</li>
+                        <li>{`Размер файла:${conversion(selectedFile.size)} кБ`}</li>
                     </ul>
                     <button onClick={uploadHandler}>Загрузить файл</button>
                 </>
@@ -90,17 +104,27 @@ function Upload() {
                 <div>
                     <h3> Loading ...</h3>
                 </div>)}
+            {overWriteError && (
+                <div className='error'>
+                    <h4>{overWriteError}</h4>
+                    <input type='checkbox' onChange={overwriteHandler} />
+                    <label>Если хотите перезаписать файл, то поставьте галочку и нажмите загрузить файл</label>
+                </div>
+            )
+            }
             {error && (
                 <div className='error'>
-                    <h3>{error}</h3>
+                    <h4>{error}</h4>
                 </div>
             )}
-            {urlUpload && (
-                <div className="UrlUpload">
-                    <h3> Файл можно скачать по ссылке</h3>
-                    {urlUpload}
-                </div>
-            )}
+            {
+                urlUpload && (
+                    <div className="UrlUpload">
+                        <h3> Файл можно скачать по ссылке</h3>
+                        {urlUpload}
+                    </div>
+                )
+            }
 
         </>
     );
